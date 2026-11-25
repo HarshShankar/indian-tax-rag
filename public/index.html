@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaxVeda Pro — Indian Tax Law RAG & Optimization Engine</title>
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-mark">T</div>
+      <div class="brand-info">
+        <span class="brand-title">TaxVeda <span class="brand-pill">PRO</span></span>
+        <span class="brand-sub">FY 2025-26 & FY 2026-27 Tax Intelligence Engine</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="status-indicator">
+        <span class="dot"></span> Grounded in incometaxindia.gov.in
+      </div>
+      <div class="model-tag"><i class="fa-solid fa-brain"></i> Gemini 3.7 Flash</div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Left Column: Minimal Configurator Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Tax Profile Configurator</h2>
+        <p>Adjust your profile to evaluate regimes & savings</p>
+      </div>
+
+      <!-- Segmented Control Tabs -->
+      <nav class="nav-pills">
+        <button class="pill-btn active" onclick="switchTab('tab-salary')"><i class="fa-solid fa-wallet"></i> Salary</button>
+        <button class="pill-btn" onclick="switchTab('tab-loans')"><i class="fa-solid fa-graduation-cap"></i> Loans</button>
+        <button class="pill-btn" onclick="switchTab('tab-esop')"><i class="fa-solid fa-globe"></i> Foreign/RSU</button>
+        <button class="pill-btn" onclick="switchTab('tab-cg')"><i class="fa-solid fa-chart-pie"></i> Capital Gains</button>
+      </nav>
+
+      <form id="taxForm" onsubmit="event.preventDefault(); calculateTax();">
+        <!-- TAB 1: SALARY & HRA -->
+        <div id="tab-salary" class="tab-pane active">
+          <div class="field-card">
+            <div class="field-group">
+              <label for="gross_income">Gross CTC Salary (Annual)</label>
+              <div class="input-box">
+                <span class="currency">₹</span>
+                <input type="number" id="gross_income" value="1800000" step="10000" required>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="basic_salary">Basic Salary</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="basic_salary" value="900000" step="5000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="prof_tax">Prof. Tax</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="prof_tax" value="2500">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-card">
+            <span class="card-title">House Rent Allowance (HRA)</span>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="hra_received">HRA Allowance</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="hra_received" value="300000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="rent_paid">Rent Paid</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="rent_paid" value="360000">
+                </div>
+              </div>
+            </div>
+            <label class="toggle-option">
+              <input type="checkbox" id="is_metro" checked>
+              <span>Metro City (Delhi, Mumbai, Kolkata, Chennai)</span>
+            </label>
+          </div>
+
+          <div class="field-card">
+            <span class="card-title">Deductions (Chapter VI-A)</span>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="sec_80c">Sec 80C (EPF/ELSS)</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="sec_80c" value="150000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="sec_80d">Sec 80D (Health)</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="sec_80d" value="25000">
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="sec_80ccd_1b">NPS Self (80CCD1B)</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="sec_80ccd_1b" value="50000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="employer_nps">Employer NPS (80CCD2)</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="employer_nps" value="90000">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: LOANS & SPECIAL DEDUCTIONS -->
+        <div id="tab-loans" class="tab-pane">
+          <div class="field-card">
+            <span class="card-title">Loan Tax Reductions</span>
+            <div class="field-group">
+              <label for="education_loan_interest">Education Loan Interest (Sec 80E)</label>
+              <div class="input-box">
+                <span class="currency">₹</span>
+                <input type="number" id="education_loan_interest" value="120000">
+              </div>
+              <span class="hint">100% Interest Deductible (No upper limit)</span>
+            </div>
+            <div class="field-group">
+              <label for="ev_loan_interest">EV Loan Interest (Sec 80EEB)</label>
+              <div class="input-box">
+                <span class="currency">₹</span>
+                <input type="number" id="ev_loan_interest" value="50000">
+              </div>
+              <span class="hint">Up to ₹1.5 Lakhs limit</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: ESOPs, RSUs & FOREIGN INCOME -->
+        <div id="tab-esop" class="tab-pane">
+          <div class="field-card">
+            <span class="card-title">Equity & Foreign Compensation</span>
+            <div class="field-group">
+              <label for="rsu_esop_perquisite">RSU / ESOP Vesting FMV</label>
+              <div class="input-box">
+                <span class="currency">₹</span>
+                <input type="number" id="rsu_esop_perquisite" value="400000">
+              </div>
+              <span class="hint">Taxed under Sec 17(2) perquisites</span>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="foreign_income">Foreign Salary/Div</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="foreign_income" value="300000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="foreign_tax_paid">Foreign Tax Paid</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="foreign_tax_paid" value="75000">
+                </div>
+              </div>
+            </div>
+            <span class="hint">Eligible for DTAA Form 67 Foreign Tax Credit</span>
+          </div>
+        </div>
+
+        <!-- TAB 4: CAPITAL GAINS -->
+        <div id="tab-cg" class="tab-pane">
+          <div class="field-card">
+            <span class="card-title">Equity & Property Capital Gains</span>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="stcg_equity">STCG Equity (20%)</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="stcg_equity" value="100000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="ltcg_equity">LTCG Equity (12.5%)</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="ltcg_equity" value="250000">
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="ltcg_property">LTCG Real Estate Sale</label>
+              <div class="input-box">
+                <span class="currency">₹</span>
+                <input type="number" id="ltcg_property" value="2500000">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="sec54_reinvestment">Sec 54/54F House</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="sec54_reinvestment" value="1500000">
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="sec54ec_bonds">Sec 54EC Bonds</label>
+                <div class="input-box">
+                  <span class="currency">₹</span>
+                  <input type="number" id="sec54ec_bonds" value="1000000">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <i class="fa-solid fa-rotate"></i> Recalculate Tax Profile
+        </button>
+      </form>
+    </aside>
+
+    <!-- Main Workspace Column -->
+    <main class="workspace">
+      <!-- Executive Tax Summary Banner -->
+      <section class="card summary-card">
+        <div class="summary-header">
+          <div class="summary-title">
+            <h3>Regime Comparison</h3>
+            <span class="summary-subtitle">Side-by-side net tax liability</span>
+          </div>
+          <div id="winnerBadge" class="recommendation-badge">Evaluating...</div>
+        </div>
+
+        <div class="comparison-grid">
+          <!-- New Regime Box -->
+          <div id="newRegimeCard" class="regime-box">
+            <div class="box-tag">Default</div>
+            <span class="box-title">New Tax Regime</span>
+            <div class="box-amount" id="newTaxVal">₹0</div>
+            <span class="box-sub">Taxable: <strong id="newTaxableVal">₹0</strong></span>
+
+            <div class="mini-metrics">
+              <div class="metric-row"><span>Standard Deduction</span><strong>- ₹75,000</strong></div>
+              <div class="metric-row"><span>Salary Tax</span><strong id="newSalaryTaxVal">₹0</strong></div>
+              <div class="metric-row"><span>Capital Gains Tax</span><strong id="newCgTaxVal">₹0</strong></div>
+              <div class="metric-row highlight"><span>DTAA Form 67 Relief</span><strong id="newFtcVal">- ₹0</strong></div>
+            </div>
+          </div>
+
+          <!-- Old Regime Box -->
+          <div id="oldRegimeCard" class="regime-box">
+            <div class="box-tag">Optional</div>
+            <span class="box-title">Old Tax Regime</span>
+            <div class="box-amount" id="oldTaxVal">₹0</div>
+            <span class="box-sub">Taxable: <strong id="oldTaxableVal">₹0</strong></span>
+
+            <div class="mini-metrics">
+              <div class="metric-row"><span>Standard Deduction</span><strong>- ₹50,000</strong></div>
+              <div class="metric-row"><span>Salary Tax</span><strong id="oldSalaryTaxVal">₹0</strong></div>
+              <div class="metric-row"><span>Capital Gains Tax</span><strong id="oldCgTaxVal">₹0</strong></div>
+              <div class="metric-row highlight"><span>DTAA Form 67 Relief</span><strong id="oldFtcVal">- ₹0</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Strategy & Opportunities Grid -->
+      <section class="card-row">
+        <!-- Personalized Strategy Box -->
+        <div class="card strategy-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-compass"></i> Income Wealth & Tax Strategy</h4>
+          </div>
+          <div id="roadmapList" class="strategy-list">
+            <div class="skeleton-text">Calculating optimal wealth strategy...</div>
+          </div>
+        </div>
+
+        <!-- Action Items Box -->
+        <div class="card action-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-circle-check"></i> Actionable Tax Reductions</h4>
+          </div>
+          <div id="recommendationsList" class="action-grid">
+            <div class="skeleton-text">Analyzing profile for tax savings...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Minimal AI RAG Assistant Workspace -->
+      <section class="card assistant-card">
+        <div class="card-header">
+          <div class="assistant-title">
+            <h4><i class="fa-solid fa-sparkles"></i> TaxVeda AI RAG Advisor</h4>
+            <span>Grounded in official Income Tax Department regulations</span>
+          </div>
+        </div>
+
+        <div id="chatHistory" class="chat-viewport">
+          <div class="chat-entry bot">
+            <div class="entry-avatar"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="entry-text">
+              Welcome to **TaxVeda Pro**. I am grounded in official Income Tax Department rules.
+              
+              Quick topics you can ask:
+              * **Education Loan:** Section 80E interest deduction rules (no upper cap)
+              * **DTAA Relief:** Filing Form 67 online to claim US RSU foreign tax credit
+              * **Capital Gains:** Section 54F exemption formula when buying a house
+            </div>
+          </div>
+        </div>
+
+        <!-- Query Chips -->
+        <div class="query-chips">
+          <button class="chip" onclick="askQuickQuery('What tax benefits do I get on my education loan under Section 80E?')">Education Loan (80E)</button>
+          <button class="chip" onclick="askQuickQuery('How do I claim Foreign Tax Credit under DTAA Form 67 for US RSUs?')">DTAA Form 67</button>
+          <button class="chip" onclick="askQuickQuery('How does Section 54F exempt tax on RSU or equity capital gains?')">Sec 54F Exemption</button>
+          <button class="chip" onclick="askQuickQuery('What is the best investment and tax saving strategy for my salary bracket?')">Income Strategy</button>
+        </div>
+
+        <form id="chatForm" onsubmit="event.preventDefault(); sendChatMessage();" class="chat-form">
+          <input type="text" id="chatInput" placeholder="Ask a question about tax laws, sections, or salary optimizations..." required>
+          <button type="submit" class="send-btn"><i class="fa-solid fa-arrow-up"></i></button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
